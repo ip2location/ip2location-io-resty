@@ -159,6 +159,8 @@ http {
                   ngx.say("proxy => is_web_proxy: " .. tostring(result.proxy.is_web_proxy))
                   ngx.say("proxy => is_web_crawler: " .. tostring(result.proxy.is_web_crawler))
                   ngx.say("proxy => is_residential_proxy: " .. tostring(result.proxy.is_residential_proxy))
+                  ngx.say("proxy => is_consumer_privacy_network: " .. tostring(result.proxy.is_consumer_privacy_network))
+                  ngx.say("proxy => is_enterprise_private_network: " .. tostring(result.proxy.is_enterprise_private_network))
                   ngx.say("proxy => is_spammer: " .. tostring(result.proxy.is_spammer))
                   ngx.say("proxy => is_scanner: " .. tostring(result.proxy.is_scanner))
                   ngx.say("proxy => is_botnet: " .. tostring(result.proxy.is_botnet))
@@ -245,6 +247,8 @@ Response Parameter
 |proxy.is_spammer|boolean|Email and forum spammers.|
 |proxy.is_scanner|boolean|Network security scanners.|
 |proxy.is_botnet|boolean|Malware infected devices.|
+|proxy.is_consumer_privacy_network|boolean|Consumer Privacy Networks.|
+|proxy.is_enterprise_private_network|boolean|Enterprise Private Networks.|
 
 ```json
 {
@@ -350,6 +354,8 @@ Response Parameter
     "is_web_proxy": false,
     "is_web_crawler": false,
     "is_residential_proxy": false,
+    "is_consumer_privacy_network":false,
+    "is_enterprise_private_network":false,
     "is_spammer": false,
     "is_scanner": false,
     "is_botnet": false
