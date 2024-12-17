@@ -45,6 +45,7 @@ ipgeolocationresult = {
   ads_category = "",
   ads_category_name = "",
   is_proxy = false,
+  fraud_score = 0,
   proxy = nil,
 }
 ipgeolocationresult.__index = ipgeolocationresult
