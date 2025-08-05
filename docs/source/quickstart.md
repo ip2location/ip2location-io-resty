@@ -163,6 +163,7 @@ http {
                   ngx.say("proxy => is_spammer: " .. tostring(result.proxy.is_spammer))
                   ngx.say("proxy => is_scanner: " .. tostring(result.proxy.is_scanner))
                   ngx.say("proxy => is_botnet: " .. tostring(result.proxy.is_botnet))
+                  ngx.say("proxy => is_bogon: " .. tostring(result.proxy.is_bogon))
                 end
             }
         }
