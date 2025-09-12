@@ -75,6 +75,15 @@ http {
                 ngx.say("is_proxy: " .. tostring(result.is_proxy))
                 ngx.say("fraud_score: " .. result.fraud_score)
 
+                -- as_info addon
+                if result["as_info"] ~= nil then
+                  ngx.say("as_info => as_name: " .. result.as_info.as_name)
+                  ngx.say("as_info => as_number: " .. result.as_info.as_number)
+                  ngx.say("as_info => as_domain: " .. result.as_info.as_domain)
+                  ngx.say("as_info => as_cidr: " .. result.as_info.as_cidr)
+                  ngx.say("as_info => as_usage_type: " .. result.as_info.as_usage_type)
+                end
+
                 -- continent addon
                 if result["continent"] ~= nil then
                   ngx.say("continent => name: " .. result.continent.name)
