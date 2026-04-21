@@ -166,6 +166,7 @@ http {
                   ngx.say("proxy => is_public_proxy: " .. tostring(result.proxy.is_public_proxy))
                   ngx.say("proxy => is_web_proxy: " .. tostring(result.proxy.is_web_proxy))
                   ngx.say("proxy => is_web_crawler: " .. tostring(result.proxy.is_web_crawler))
+                  ngx.say("proxy => is_ai_crawler: " .. tostring(result.proxy.is_ai_crawler))
                   ngx.say("proxy => is_residential_proxy: " .. tostring(result.proxy.is_residential_proxy))
                   ngx.say("proxy => is_consumer_privacy_network: " .. tostring(result.proxy.is_consumer_privacy_network))
                   ngx.say("proxy => is_enterprise_private_network: " .. tostring(result.proxy.is_enterprise_private_network))
