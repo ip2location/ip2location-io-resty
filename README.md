@@ -1,231 +1,270 @@
-IP2Location.io OpenResty SDK
-============================
-This OpenResty package enables user to query for an enriched data set, such as country, region, district, city, latitude & longitude, ZIP code, time zone, ASN, ISP, domain, net speed, IDD code, area code, weather station data, MNC, MCC, mobile brand, elevation, usage type, address type, advertisement category and proxy data with an IP address. It supports both IPv4 and IPv6 address lookup.
+# IP2Location.io OpenResty SDK — IP Geolocation & IP Intelligence for OpenResty
 
-This package requires API key to function. You may sign up for a free API key at https://www.ip2location.io/pricing.
+**IP2Location.io OpenResty SDK** (`ip2location-io-resty`) is an OpenResty/Lua package for retrieving **IPv4 and IPv6 geolocation, network and IP intelligence data** using the [IP2Location.io API](https://www.ip2location.io/). It integrates IP lookups into OpenResty applications using the Nginx Lua module and can return available location, ASN, ISP, time zone and proxy-related information.
 
-Developer Documentation
-=====================
+**Quick links:** [Get an API key](https://www.ip2location.io/pricing) · [Developer documentation](https://ip2location-io-resty.readthedocs.io/en/latest/index.html) · [API reference](https://ip2location-io-resty.readthedocs.io/en/latest/code.html) · [GitHub repository](https://github.com/ip2location/ip2location-io-resty)
 
-To learn more about installation, usage, and code examples, please visit the developer documentation at [https://ip2location-io-resty.readthedocs.io/en/latest/index.html](https://ip2location-io-resty.readthedocs.io/en/latest/index.html).
+## Features
 
+- **IPv4 and IPv6 geolocation:** Look up available country, region, district, city, postal code, latitude and longitude.
+- **Network and ASN information:** Access ASN, AS name, ISP, associated domain, connection speed and usage type where included in the API response.
+- **Time zone and localization data:** Retrieve time zone information and eligible daylight saving details; request translated continent, country, region and city names on Plus and Security plans.
+- **Proxy and security signals:** Access available proxy, VPN, Tor, data center, crawler and other network-risk indicators, including a fraud score when provided by the plan.
+- **Additional IP intelligence:** Retrieve eligible mobile carrier (MCC/MNC), country metadata, elevation, weather station and advertising category fields.
+- **OpenResty integration:** Perform lookups from Nginx `content_by_lua_block` handlers and use the results in OpenResty applications.
 
-Installation
-============
+> **Plan availability:** Not all attributes are included in every API plan or returned for every address. See the [pricing page](https://www.ip2location.io/pricing) and [OpenResty response field reference](https://ip2location-io-resty.readthedocs.io/en/latest/code.html) for details.
+
+## SDK modules
+
+The [official OpenResty API reference](https://ip2location-io-resty.readthedocs.io/en/latest/code.html) documents the following configuration and geolocation interfaces:
+
+| Module / method | Description |
+| --- | --- |
+| [`configuration`](https://ip2location-io-resty.readthedocs.io/en/latest/code.html#configuration-class) | Stores the API key for IP2Location.io lookups. Set `configuration.api_key`. |
+| [`ipgeolocation:open(configuration)`](https://ip2location-io-resty.readthedocs.io/en/latest/quickstart.html) | Initializes the geolocation client with the configuration object. |
+| [`ipl:lookup(ip, lang)`](https://ip2location-io-resty.readthedocs.io/en/latest/code.html#ipgeolocation-class) | Looks up an IPv4 or IPv6 address; `lang` is an optional translation-language code. |
+
+This OpenResty SDK's published documentation covers **IP geolocation**. Although the IP2Location.io platform offers separate Domain WHOIS and Hosted Domain APIs, the OpenResty SDK documentation does **not** describe corresponding SDK modules or methods. Therefore, those examples are intentionally not included here.
+
+## API access and query limits
+
+IP2Location.io offers keyless geolocation queries through its REST API and a Free plan with an API key:
+
+| API service | Keyless (no API key) | Free plan (with API key) |
+| --- | --- | --- |
+| IP Geolocation API | **1,000 queries/day** | **50,000 queries/month** |
+
+- **Keyless access:** The limited [IP Geolocation REST API](https://www.ip2location.io/ip2location-documentation) supports requests without registration. Its allowance resets daily at **00:00 UTC**. **This SDK requires an API key**, so the examples below use authenticated access.
+- **Free plan:** Sign up for an API key to use the published monthly allowance.
+- **Attribution:** Keyless and Free-plan usage require attribution. See the [pricing page](https://www.ip2location.io/pricing) for current conditions.
+- **Paid plans:** Higher quotas and additional fields are available; consult the [pricing page](https://www.ip2location.io/pricing).
+
+The platform also offers Domain WHOIS and Hosted Domain API quotas, but those are **separate services**, not documented functions of this OpenResty SDK.
+
+## Requirements
+
+- [OpenResty](https://openresty.org/) with its bundled Nginx Lua support.
+- The [OpenResty Package Manager (`opm`)](https://opm.openresty.org/) to install the SDK.
+- An [IP2Location.io API key](https://www.ip2location.io/pricing) for SDK lookups.
+- Outbound HTTPS access to the IP2Location.io API endpoint and DNS resolution for the upstream host.
+
+The official quickstart demonstrates the SDK within an OpenResty/Nginx configuration, rather than as a standalone Lua script. The documentation does not specify a minimum OpenResty release; use a supported OpenResty installation with `opm` available.
+
+## Installation
+
+### 1. Install the OpenResty package
+
+Use the command provided by the [official repository](https://github.com/ip2location/ip2location-io-resty) and [quickstart](https://ip2location-io-resty.readthedocs.io/en/latest/quickstart.html):
+
 ```bash
-
 opm get ip2location/ip2location-io-resty
-
 ```
 
+### 2. Configure the API key
 
-Usage Example
-============
+The official quickstart sets `configuration.api_key = apikey` within its Lua handler. For a deployed application, you can keep the key out of source control by supplying it through the process environment.
 
-Refer to the [Sample Code section](https://ip2location-io-resty.readthedocs.io/en/latest/quickstart.html#sample-codes)
+**Linux / macOS terminal:**
 
+```bash
+export IP2LOCATION_API_KEY='YOUR_API_KEY'
+```
 
-Response Parameter
-============
-### IP Geolocation Lookup function
-| Parameter | Type | Description |
-|---|---|---|
-|ip|string|IP address.|
-|country_code|string|Two-character country code based on ISO 3166.|
-|country_name|string|Country name based on ISO 3166.|
-|region_name|string|Region or state name.|
-|city_name|string|City name.|
-|latitude|double|City latitude. Defaults to capital city latitude if city is unknown.|
-|longitude|double|City longitude. Defaults to capital city longitude if city is unknown.|
-|zip_code|string|ZIP/Postal code.|
-|time_zone|string|UTC time zone (with DST supported).|
-|asn|string|Autonomous system number (ASN).|
-|as|string|Autonomous system (AS) name.|
-|isp|string|Internet Service Provider or company's name.|
-|domain|string|Internet domain name associated with IP address range.|
-|net_speed|string|Internet connection type. DIAL = dial-up, DSL = broadband/cable/fiber/mobile, COMP = company/T1|
-|idd_code|string|The IDD prefix to call the city from another country.|
-|area_code|string|A varying length number assigned to geographic areas for calls between cities.|
-|weather_station_code|string|The special code to identify the nearest weather observation station.|
-|weather_station_name|string|The name of the nearest weather observation station.|
-|mcc|string|Mobile Country Codes (MCC) as defined in ITU E.212 for use in identifying mobile stations in wireless telephone networks, particularly GSM and UMTS networks.|
-|mnc|string|Mobile Network Code (MNC) is used in combination with a Mobile Country Code (MCC) to uniquely identify a mobile phone operator or carrier.|
-|mobile_brand|string|Commercial brand associated with the mobile carrier.|
-|elevation|integer|Average height of city above sea level in meters (m).|
-|usage_type|string|Usage type classification of ISP or company.|
-|address_type|string|IP address types as defined in Internet Protocol version 4 (IPv4) and Internet Protocol version 6 (IPv6).|
-|continent.name|string|Continent name.|
-|continent.code|string|Two-character continent code.|
-|continent.hemisphere|array|The hemisphere of where the country located. The data in array format with first item indicates (north/south) hemisphere and second item indicates (east/west) hemisphere information.|
-|continent.translation|object|Translation data based on the given lang code.|
-|district|string|District or county name.|
-|country.name|string|Country name based on ISO 3166.|
-|country.alpha3_code|string|Three-character country code based on ISO 3166.|
-|country.numeric_code|string|Three-character country numeric code based on ISO 3166.|
-|country.demonym|string|Native of the country.|
-|country.flag|string|URL of the country flag image.|
-|country.capital|string|Capital of the country.|
-|country.total_area|integer|Total area in km2.|
-|country.population|integer|Population of the country.|
-|country.currency|object|Currency of the country.|
-|country.language|object|Language of the country.|
-|country.tld|string|Country-Code Top-Level Domain.|
-|country.translation|object|Translation data based on the given lang code.|
-|region.name|string|Region or state name.|
-|region.code|string|ISO3166-2 code.|
-|region.translation|object|Translation data based on the given lang code.|
-|city.name|string| City name.|
-|city.translation|object|Translation data based on the given lang code.|
-|time_zone_info.olson|string|Time zone in Olson format.|
-|time_zone_info.current_time|string|Current time in ISO 8601 format.|
-|time_zone_info.gmt_offset|integer|GMT offset value in seconds.|
-|time_zone_info.is_dst|boolean|Indicate if the time zone value is in DST.|
-|time_zone_info.abbreviation|string|The time zone abbreviation of the Olson time zone, for example EST and EEST.|
-|time_zone_info.dst_start_date|string|The date (UTC) of Daylight Saving Time (DST) begins.|
-|time_zone_info.dst_end_date|string|The date (UTC) of Daylight Saving Time (DST) ends.|
-|time_zone_info.sunrise|string|Time of sunrise. (hh:mm format in local time, i.e, 07:47)|
-|time_zone_info.sunset|string|Time of sunset. (hh:mm format in local time, i.e 19:50)|
-|geotargeting.metro|string|Metro code based on zip/postal code.|
-|ads_category|string|The domain category code based on IAB Tech Lab Content Taxonomy.|
-|ads_category_name|string|The domain category based on IAB Tech Lab Content Taxonomy. These categories are comprised of Tier-1 and Tier-2 (if available) level categories widely used in services like advertising, Internet security and filtering appliances.|
-|is_proxy|boolean|Whether is a proxy or not.|
-|fraud_score|integer|Potential risk score (0 - 99) associated with IP address. A higher IP2Proxy Fraud Score indicates a greater likelihood of fraudulent activity and a lower reputation.|
-|proxy.last_seen|integer|Proxy last seen in days.|
-|proxy.proxy_type|string|Type of proxy.|
-|proxy.threat|string|Security threat reported.|
-|proxy.provider|string|Name of VPN provider if available.|
-|proxy.is_vpn|boolean|Anonymizing VPN services.|
-|proxy.is_tor|boolean|Tor Exit Nodes.|
-|proxy.is_data_center|boolean|Hosting Provider, Data Center or Content Delivery Network.|
-|proxy.is_public_proxy|boolean|Public Proxies.|
-|proxy.is_web_proxy|boolean|Web Proxies.|
-|proxy.is_web_crawler|boolean|Search Engine Robots.|
-|proxy.is_ai_crawler|boolean|Specifically identifies IP addresses used by artificial intelligence companies to crawl the web for LLM training data or real-time retrieval (RAG).|
-|proxy.is_residential_proxy|boolean|Residential proxies.|
-|proxy.is_spammer|boolean|Email and forum spammers.|
-|proxy.is_scanner|boolean|Network security scanners.|
-|proxy.is_botnet|boolean|Malware infected devices.|
-|proxy.is_bogon|boolean|Unassigned or illegitimate IP addresses announced via BGP.|
-|proxy.is_consumer_privacy_network|boolean|Consumer Privacy Networks.|
-|proxy.is_enterprise_private_network|boolean|Enterprise Private Networks.|
+In the **main** (top-level) section of your OpenResty/Nginx configuration, preserve that environment variable for workers:
 
-```json
-{
-  "ip": "8.8.8.8",
-  "country_code": "US",
-  "country_name": "United States of America",
-  "region_name": "California",
-  "city_name": "Mountain View",
-  "latitude": 37.405992,
-  "longitude": -122.078515,
-  "zip_code": "94043",
-  "time_zone": "-07:00",
-  "asn": "15169",
-  "as": "Google LLC",
-  "isp": "Google LLC",
-  "domain": "google.com",
-  "net_speed": "T1",
-  "idd_code": "1",
-  "area_code": "650",
-  "weather_station_code": "USCA0746",
-  "weather_station_name": "Mountain View",
-  "mcc": "-",
-  "mnc": "-",
-  "mobile_brand": "-",
-  "elevation": 32,
-  "usage_type": "DCH",
-  "address_type": "Anycast",
-  "continent": {
-    "name": "North America",
-    "code": "NA",
-    "hemisphere": [
-      "north",
-      "west"
-    ],
-    "translation": {
-      "lang": "es",
-      "value": "Norteamérica"
+```nginx
+env IP2LOCATION_API_KEY;
+```
+
+> **Deployment note:** Environment-variable handling depends on how OpenResty is launched (for example, a service manager may not inherit your interactive shell environment). Ensure the variable is available to the OpenResty master process. The official sample alternatively uses a literal `YOUR_API_KEY` placeholder.
+
+## Quickstart: IP geolocation lookup
+
+The following `nginx.conf` example follows the [official OpenResty quickstart](https://ip2location-io-resty.readthedocs.io/en/latest/quickstart.html) with an environment-supplied API key and a shorter response.
+
+```nginx
+# Main context
+env IP2LOCATION_API_KEY;
+worker_processes 1;
+error_log logs/error.log;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    resolver 8.8.8.8 ipv6=off;
+
+    server {
+        listen 8080;
+
+        location / {
+            default_type text/plain;
+            content_by_lua_block {
+                local configuration = require("configuration")
+                local ipgeolocation = require("ipgeolocation")
+
+                configuration.api_key = os.getenv("IP2LOCATION_API_KEY")
+                local ipl = ipgeolocation:open(configuration)
+                local result = ipl:lookup("8.8.8.8", "")
+
+                ngx.say("IP: " .. result.ip)
+                ngx.say("Country: " .. result.country_name)
+                ngx.say("City: " .. result.city_name)
+                ngx.say("ASN: " .. result.asn)
+            }
+        }
     }
-  },
-  "district": "Santa Clara County",
-  "country": {
-    "name": "United States of America",
-    "alpha3_code": "USA",
-    "numeric_code": 840,
-    "demonym": "Americans",
-    "flag": "https://cdn.ip2location.io/assets/img/flags/us.png",
-    "capital": "Washington, D.C.",
-    "total_area": 9826675,
-    "population": 331002651,
-    "currency": {
-      "code": "USD",
-      "name": "United States Dollar",
-      "symbol": "$"
-    },
-    "language": {
-      "code": "EN",
-      "name": "English"
-    },
-    "tld": "us",
-    "translation": {
-      "lang": "es",
-      "value": "Estados Unidos de América (los)"
-    }
-  },
-  "region": {
-    "name": "California",
-    "code": "US-CA",
-    "translation": {
-      "lang": "es",
-      "value": "California"
-    }
-  },
-  "city": {
-    "name": "Mountain View",
-    "translation": {
-      "lang": null,
-      "value": null
-    }
-  },
-  "time_zone_info": {
-    "olson": "America/Los_Angeles",
-    "current_time": "2023-09-03T18:21:13-07:00",
-    "gmt_offset": -25200,
-    "is_dst": true,
-    "sunrise": "06:41",
-    "sunset": "19:33"
-  },
-  "geotargeting": {
-    "metro": "807"
-  },
-  "ads_category": "IAB19-11",
-  "ads_category_name": "Data Centers",
-  "is_proxy": false,
-  "fraud_score": 0,
-  "proxy": {
-    "last_seen": 3,
-    "proxy_type": "DCH",
-    "threat": "-",
-    "provider": "-",
-    "is_vpn": false,
-    "is_tor": false,
-    "is_data_center": true,
-    "is_public_proxy": false,
-    "is_web_proxy": false,
-    "is_web_crawler": false,
-    "is_ai_crawler": false,
-    "is_residential_proxy": false,
-    "is_consumer_privacy_network":false,
-    "is_enterprise_private_network":false,
-    "is_spammer": false,
-    "is_scanner": false,
-    "is_botnet": false
-    "is_bogon": false
-  }
 }
 ```
 
+Save the configuration in the appropriate location for your OpenResty installation, then validate and start or reload OpenResty using your deployment's normal commands. For example, after the server is running:
 
-LICENCE
-=====================
-See the LICENSE file.
+```bash
+curl http://127.0.0.1:8080/
+```
+
+The sample intentionally uses the fixed address `8.8.8.8`, as in the official quickstart. Substitute your target IP as appropriate. The optional second argument is the translation language; an empty string requests no translation. Available response fields depend on the API plan.
+
+## OpenResty response handling
+
+The documented `lookup()` result is a decoded response table. Use Lua table access for fields (`result.country_name`), and check optional nested objects before reading them (`result.proxy`, `result.time_zone_info`, etc.). For boolean values printed with `ngx.say`, `tostring()` matches the convention in the [official example](https://ip2location-io-resty.readthedocs.io/en/latest/quickstart.html).
+
+The examples in the next section are **Lua snippets intended for `content_by_lua_block`** (or another appropriate OpenResty Lua handler). Each snippet assumes these common initialization lines have already been run:
+
+```lua
+local configuration = require("configuration")
+local ipgeolocation = require("ipgeolocation")
+configuration.api_key = os.getenv("IP2LOCATION_API_KEY")
+local ipl = ipgeolocation:open(configuration)
+```
+
+## More usage examples
+
+### Request translated location names
+
+Pass an ISO 639-1 language code as the optional second argument. The [official reference](https://ip2location-io-resty.readthedocs.io/en/latest/code.html#ipgeolocation-class) specifies that translations are available with **Plus and Security** plans.
+
+```lua
+local result = ipl:lookup("8.8.8.8", "fr")
+
+if result.country ~= nil and result.country.translation ~= nil then
+    ngx.say("Country translation: " .. tostring(result.country.translation.value))
+end
+```
+
+The translated value may be unavailable for an address or field even when a language code is requested.
+
+### Retrieve ASN and ISP details
+
+The API can return a top-level ASN and AS name, as well as additional structured AS information on eligible plans:
+
+```lua
+local result = ipl:lookup("8.8.8.8", "")
+
+ngx.say("ASN: " .. tostring(result.asn))
+ngx.say("AS name: " .. tostring(result.as))
+ngx.say("ISP: " .. tostring(result.isp))
+
+if result.as_info ~= nil then
+    ngx.say("AS domain: " .. tostring(result.as_info.as_domain))
+    ngx.say("AS CIDR: " .. tostring(result.as_info.as_cidr))
+end
+```
+
+### Inspect proxy and security indicators
+
+Proxy-related fields and fraud scores depend on the plan and returned data. The nested proxy object is optional.
+
+```lua
+local result = ipl:lookup("8.8.8.8", "")
+
+ngx.say("Is proxy: " .. tostring(result.is_proxy))
+
+if result.proxy ~= nil then
+    ngx.say("Is VPN: " .. tostring(result.proxy.is_vpn))
+    ngx.say("Is Tor: " .. tostring(result.proxy.is_tor))
+    ngx.say("Is data center: " .. tostring(result.proxy.is_data_center))
+end
+```
+
+Use these indicators alongside other signals when reviewing risk; a single IP attribute is not definitive evidence of fraud.
+
+### Retrieve time zone information
+
+Eligible responses can include detailed time zone information, including Olson time zone, UTC offset and daylight saving status.
+
+```lua
+local result = ipl:lookup("8.8.8.8", "")
+
+ngx.say("Time zone: " .. tostring(result.time_zone))
+
+if result.time_zone_info ~= nil then
+    ngx.say("Olson: " .. tostring(result.time_zone_info.olson))
+    ngx.say("GMT offset: " .. tostring(result.time_zone_info.gmt_offset))
+    ngx.say("DST active: " .. tostring(result.time_zone_info.is_dst))
+end
+```
+
+### Return a JSON geolocation response
+
+You can return selected fields as JSON from an OpenResty handler. This example is an **additional integration example** rather than a verbatim sample from the SDK quickstart.
+
+```lua
+local cjson = require("cjson")
+local result = ipl:lookup("8.8.8.8", "")
+
+ngx.header.content_type = "application/json"
+ngx.say(cjson.encode({
+    ip = result.ip,
+    country_code = result.country_code,
+    country_name = result.country_name,
+    city_name = result.city_name,
+    asn = result.asn
+}))
+```
+
+### Use the client IP in an OpenResty handler
+
+For an application endpoint, you can pass a request IP to the same documented `lookup()` method. This is an **additional integration example**, not a separate SDK method.
+
+```lua
+local ip = ngx.var.remote_addr
+local result = ipl:lookup(ip, "")
+
+ngx.say("Client IP: " .. tostring(ip))
+ngx.say("Country: " .. tostring(result.country_name))
+```
+
+`ngx.var.remote_addr` represents the address OpenResty sees as the client. Behind a reverse proxy or load balancer, configure trusted proxy handling correctly before using it as the originating client IP. Avoid trusting arbitrary forwarded-IP headers.
+
+## OpenResty troubleshooting
+
+- **`module 'configuration' not found` or `module 'ipgeolocation' not found`:** Confirm `opm get ip2location/ip2location-io-resty` completed successfully and that the OpenResty process uses the Lua module search path provided by the package installation.
+- **API key missing:** Check that `IP2LOCATION_API_KEY` is present in the OpenResty master process environment and that the top-level `env IP2LOCATION_API_KEY;` directive is configured. Alternatively, use the API key assignment shown in the official quickstart.
+- **DNS or outbound HTTPS issues:** Make sure the OpenResty host can resolve and contact the API service. The official sample configures an Nginx `resolver` directive.
+- **Missing optional fields:** Verify your API plan and check whether an optional nested object exists before accessing its members. Missing values do not necessarily indicate an SDK failure.
+
+## Common use cases
+
+- **Website localization:** Use approximate IP location to select region-relevant content or language in an OpenResty application.
+- **Traffic and network analytics:** Add country, city, ISP and ASN context to request-related data.
+- **Security review:** Supplement other risk signals using available proxy, VPN, Tor and data center indicators.
+- **Location-aware API responses:** Return selected geolocation fields as JSON from an OpenResty endpoint.
+- **Time zone-aware experiences:** Read available time zone data to suggest location-appropriate displays or settings.
+
+## Documentation and support
+
+- [OpenResty SDK quickstart and sample code](https://ip2location-io-resty.readthedocs.io/en/latest/quickstart.html)
+- [OpenResty API reference and response fields](https://ip2location-io-resty.readthedocs.io/en/latest/code.html)
+- [Official GitHub repository](https://github.com/ip2location/ip2location-io-resty)
+- [OpenResty Package Manager](https://opm.openresty.org/)
+- [IP2Location.io API plans and query limits](https://www.ip2location.io/pricing)
+- [IP Geolocation API authentication and rate limits](https://www.ip2location.io/ip2location-documentation)
+- [Report an SDK issue or request a feature](https://github.com/ip2location/ip2location-io-resty/issues)
+- [API and account support](https://www.ip2location.io/contact-us)
+
+## License
+
+Licensed under the **MIT License**. See [LICENSE](./LICENSE).
