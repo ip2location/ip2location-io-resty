@@ -1,4 +1,5 @@
 # IP2Location.io OpenResty SDK — IP Geolocation & IP Intelligence for OpenResty
+![OPM Version](https://img.shields.io/opm/v/ip2location/ip2location-io-resty)
 
 **IP2Location.io OpenResty SDK** (`ip2location-io-resty`) is an OpenResty/Lua package for retrieving **IPv4 and IPv6 geolocation, network and IP intelligence data** using the [IP2Location.io API](https://www.ip2location.io/). It integrates IP lookups into OpenResty applications using the Nginx Lua module and can return available location, ASN, ISP, time zone and proxy-related information.
 
